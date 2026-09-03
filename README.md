@@ -31,7 +31,7 @@ An LLM reading your components will happily tell you the checkout works. `/eyes`
 ## Install
 
 ```bash
-git clone https://github.com/USER/REPO.git ~/.claude/skills/eyes
+git clone https://github.com/Kauan-Millarch1/claude-eyes.git ~/.claude/skills/eyes
 cd ~/.claude/skills/eyes/runtime
 npm install
 ```

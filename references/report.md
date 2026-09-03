@@ -10,6 +10,15 @@ Written in PT-BR. Terse, concrete, worst-first. The reader wants to know: can my
 
 **Veredito:** <consegue ou não consegue completar o trabalho principal>. <Uma frase.>
 
+### A jornada
+| # | O que eu fiz | O que aconteceu |
+|---|---|---|
+| 1 | <ação> | <o que respondeu — ou o sinal exato, se travou> |
+| … | | |
+
+<Uma ou duas frases sobre a sensação da rota: onde hesitei, o que não estava
+onde eu esperava, o que me fez clicar duas vezes.>
+
 ### Achados
 
 **P0 — <título curto do problema>**
@@ -48,6 +57,22 @@ Repeti o formulário de entrega no teclado. Evidência: C:\...\claude-eyes\run-2
 
 **Veredito:** não consegue comprar. O botão "Adicionar ao carrinho" falha em silêncio e o
 usuário fica na mesma tela achando que o item entrou.
+
+### A jornada
+| # | O que eu fiz | O que aconteceu |
+|---|---|---|
+| 1 | Cheguei na home sem sessão | Carrossel ocupa a tela toda; nenhum produto visível sem rolar |
+| 3 | Abri o produto 42 | Preço e foto ok, frete só aparece depois do CEP |
+| 4 | "Adicionar ao carrinho" | `NO VISIBLE CHANGE` + `!! HTTP 500: POST /api/carrinho`. Nada na tela |
+| 5 | Cliquei de novo, achando que não pegou | Mesma coisa. Dois POSTs, dois 500, contador segue em 0 |
+| 8 | Fui no carrinho pelo topo | Vazio, como esperado. Sem mensagem explicando |
+| 12 | Preenchi os 6 campos de entrega | Aceitou tudo, inclusive CEP de 3 dígitos |
+| 13 | Recarreguei | Formulário voltou vazio, sem aviso |
+| 23 | Parei na fronteira do gateway | — |
+
+A rota trava no passo 4 e o produto não conta isso. Cliquei duas vezes porque nada
+mudou na tela, e só o console sabia do 500. Do passo 5 ao 8 eu estava procurando
+confirmação de uma coisa que nunca aconteceu.
 
 ### Achados
 
@@ -95,13 +120,27 @@ Fix: remover o `outline:none` ou dar um `:focus-visible` próprio visível.
 - Tablet — o produto declara foco em mobile e desktop.
 ```
 
+## Regras da jornada
+
+A tabela sai do `bundle.json` (`steps[]`), gerado por `runtime/bundle.mjs` depois do `stop`.
+
+- **Não cole os 40 passos.** O leitor quer a espinha da rota (5–8 linhas: cheguei, procurei, cliquei, preenchi, submeti) mais **todo passo sinalizado, na íntegra**. `bundle.mjs` imprime quais são.
+- **Coluna 2 é observação, não narração.** "abriu o modal" e não "cliquei no botão de detalhes". O que eu fiz já está na coluna 1.
+- **Passo com sinal leva o sinal exato**, copiado: `NO VISIBLE CHANGE`, `!! HTTP 500: POST /api/carrinho`.
+- **O parágrafo depois da tabela é a única parte subjetiva do relatório inteiro** — e ele é sobre fricção observável ("voltei duas vezes porque o preço só aparece no passo 3"), nunca sobre gosto ("achei feio").
+- Se a sessão morreu no meio, a jornada termina onde morreu e isso vira linha em **Não testei**.
+
 ## Publicar
 
-Se o usuário quiser algo compartilhável (time, cliente, ticket), publique como Artifact:
+**O Artifact é a entrega.** Uma revisão cuja evidência mora no `%TEMP%` de uma máquina não chega em quem tem que corrigir o bug. Publique, a menos que o usuário diga pra não publicar.
 
-1. Carregue a skill `artifact-design` **antes** de escrever o arquivo.
-2. Escreva o relatório em HTML ou Markdown num arquivo, com os achados na mesma ordem.
-3. `Artifact` com o caminho, título curto (ex.: "Revisão da Loja"), `favicon` `👁️`, e a descrição de uma linha.
-4. Screenshots são arquivos locais: um Artifact não alcança o disco do usuário. Ou anexe via `upload_asset` num artifact com a capability `assets`, ou cite os caminhos e deixe as imagens fora da página.
+1. Rode `runtime/bundle.mjs` primeiro. Sem `bundle.json` não há imagem pra colocar na página.
+2. Carregue a skill `artifact-design` **antes** de escrever o arquivo.
+3. Escreva o relatório em HTML num arquivo: jornada como timeline, achados pior-primeiro, **cada achado com o próprio screenshot inline**.
+4. A imagem vem de `shots[<step>].dataUri` — cole em `<img src="...">` direto. Um Artifact **não alcança o disco do usuário**: citar `shots/004-click.png` numa página compartilhada não mostra nada pra quem abrir o link.
+5. `Artifact` com o caminho, título curto (ex.: "Revisão da Loja"), `favicon` `👁️`, descrição de uma linha, e **sem `capabilities`** — a página é estática e as imagens já estão dentro dela.
+6. Leia `notes[]` do bundle e diga no fim da resposta o que ficou fora: screenshot descartado por orçamento, e o vídeo, que é local e não viaja.
 
-Caso contrário, o relatório no terminal + os caminhos da evidência já são a entrega.
+> Sobre `upload_asset` / capability `assets`: existe, é mais leve pra evidência grande, mas **não está liberada em toda conta**. `data:` URI funciona sempre. Só use `assets` se a `artifact-capabilities` listar ela pra você — e declare a capability no primeiro publish, porque anexar depois obriga redeploy.
+
+O relatório no terminal continua saindo. Quem está lendo agora não deveria precisar abrir um link pra saber o veredito.

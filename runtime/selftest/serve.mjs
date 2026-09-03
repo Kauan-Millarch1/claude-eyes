@@ -11,7 +11,7 @@ http.createServer((req, res) => {
     res.writeHead(500, { 'content-type': 'application/json' });
     return res.end('{"erro":"cart service down"}');
   }
-  const file = url === '/' ? 'eyes-testbed.html' : url.slice(1);
+  const file = url === '/' ? 'testbed.html' : url.slice(1);
   const p = path.join(DIR, file);
   fs.readFile(p, (e, buf) => {
     if (e) { res.writeHead(404); return res.end('not found'); }

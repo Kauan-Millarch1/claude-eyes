@@ -20,6 +20,7 @@ An LLM reading your components will happily tell you the checkout works. `/eyes`
 - Runs the mechanical sweeps: `tabaudit` (keyboard order and focus rings), `a11y` (axe-core, WCAG 2 A/AA), `contrast` (real computed ratios), `perf` (TTFB/FCP/LCP/CLS), mobile device emulation, network throttling.
 - Records a video and a screenshot per action into a run directory, plus `journal.jsonl` and `summary.json`.
 - Produces a severity-ranked report (P0 blocker → P3 polish) where every claim traces to a step, a screenshot, or a console line.
+- **Publishes the review as a shareable page.** `bundle.mjs` turns the run into `bundle.json` — the step-by-step journey plus the evidence screenshots as `data:` URIs — and the report goes out as a claude.ai Artifact with the images embedded, so the person who has to fix the bug can actually see it. A review whose evidence only lives in `%TEMP%` on one machine is not a deliverable.
 
 ## Requirements
 
@@ -78,7 +79,7 @@ references/
   checklists.md           per-surface sweep: forms, auth, lists, modals, checkout, mobile
   personas.md             whose eyes to use; device and network matrix
   heuristics.md           naming *why* something is bad; what counts as evidence
-  report.md               report skeleton with a worked example
+  report.md               report skeleton, journey rules, how to publish
   troubleshooting.md      browser won't start, stale refs, SPAs, auth walls, iframes
 runtime/
   eyes.mjs                CLI entry point
@@ -86,6 +87,7 @@ runtime/
   browser.mjs             system-browser resolution (Chrome → Edge → cached Chromium)
   inpage.mjs              injected page-side instrumentation
   probe.mjs               preflight: which local ports answer, what start scripts exist
+  bundle.mjs              standalone: run dir -> bundle.json (journey + data: URI shots)
   selftest/               a page with defects planted on purpose
 ```
 

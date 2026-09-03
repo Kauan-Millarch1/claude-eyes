@@ -50,6 +50,8 @@ look
   tabaudit [n]                 keyboard-only sweep: tab order, focus rings, dead ends
   storage                      cookies / localStorage / sessionStorage
   journal                      where the evidence for this run lives
+                               after stop, package it for a report or an Artifact:
+                               node bundle.mjs [--shots=auto|all|none|4,13] [--max-mb=10]
 
 act (every action reports what changed, what broke, and screenshots itself)
   goto <url>                   navigate (bare host gets https://, localhost gets http://)

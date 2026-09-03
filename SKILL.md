@@ -101,15 +101,33 @@ node "$EYES" net                 # everything the network refused all session
 
 `references/checklists.md` is the full sweep, organised by surface (forms, lists, modals, auth, checkout, dashboards). Read it before declaring a flow covered — it exists to catch what you forgot to try.
 
-## 5. Report
+## 5. Close the session and bundle the evidence
 
-`node "$EYES" stop` flushes `summary.json` and the video. Then write the report — in PT-BR, structured exactly like `references/report.md`:
+```bash
+node "$EYES" stop                                    # flush summary.json + video
+node "$HOME/.claude/skills/eyes/runtime/bundle.mjs"  # collect the journey + screenshots
+```
+
+`bundle.mjs` runs **standalone** — it reads the run directory off disk, so it works after the daemon is dead. It writes `bundle.json` next to the evidence and prints the flagged steps. Three things come out of it:
+
+- **`steps[]` — the journey.** Every action in order, with the URL and the signals the driver volunteered at that step. This is the lived experience of using the product, and it only exists here: the terminal output is gone, and `summary.json` has the tallies but not the walk.
+- **`shots{}` — screenshots as `data:` URIs**, keyed by step number, ready to drop straight into `<img src>`. A published Artifact cannot reach the user's disk, so a page that cites `shots/004-click.png` shows the reader nothing. By default it embeds only the steps where something actually went wrong; `--shots=4,13` picks specific ones, `--shots=all` takes everything, `--shots=none` skips images.
+- **`notes[]` — what it could not embed and why.** A screenshot too big for the budget is reported, never dropped in silence.
+
+It stays inside a 10 MB base64 budget (`--max-mb=`) against the Artifact's 16 MB ceiling, shrinking oversized shots through a real canvas rather than blowing the limit. **Read the `notes` before you write the report** — an image the bundle dropped is an image your page will not have.
+
+The video is local-only. Cite its path; it cannot travel into an Artifact.
+
+## 6. Report
+
+Write it in PT-BR, structured exactly like `references/report.md`:
 
 1. **O que eu fiz** — the route walked, in one short paragraph. Device, how many steps.
 2. **Veredito** — can a real user complete the main job? One sentence, no hedging.
-3. **Achados**, worst first. Each one: severity, what happened, the exact steps to reproduce, the evidence path, and the fix you would make.
-4. **O que funcionou bem** — specific, not flattery. Name the interaction that felt right.
-5. **O que eu não consegui testar** — and why. Never let a gap pass as coverage.
+3. **A jornada** — the walk itself, step by step, from `bundle.json`. Where it went, what answered, where it broke. Do not paste all 40 rows: give the spine of the route, then every flagged step in full. This is the section that answers "what was it like to use this thing", and it is the reason the run was journaled.
+4. **Achados**, worst first. Each one: severity, what happened, the exact steps to reproduce, the evidence, and the fix you would make.
+5. **O que funcionou bem** — specific, not flattery. Name the interaction that felt right.
+6. **O que eu não consegui testar** — and why. Never let a gap pass as coverage.
 
 Severity, applied honestly:
 
@@ -120,7 +138,16 @@ Severity, applied honestly:
 
 Rank by what it costs the user, not by how easy it is to fix. Three P2s that all say "there is no feedback after submitting" are one finding, stated once.
 
-If the user wants something shareable, publish the report as an Artifact (load `artifact-design` first) and hand over the link. Otherwise the terminal report plus the evidence paths is the deliverable.
+## 7. Publish it
+
+**The Artifact is the deliverable, not an extra.** A review whose evidence lives in `%TEMP%` on one machine cannot be handed to the person who has to fix the bug. Publish unless the user says not to.
+
+1. Load the `artifact-design` skill **before** writing the file.
+2. Write the report to an HTML file: the journey as a walkable timeline, the findings worst-first, each one showing its own screenshot inline from `bundle.json`'s `shots[step].dataUri`.
+3. Publish with `Artifact`: a short title (`"Revisão da Loja"`), `favicon` `👁️`, and a one-line description. **No `capabilities`** — the page is static, the images are already inside it.
+4. Hand over the link, and say what did not make it in (dropped shots, the video path).
+
+`references/report.md` has the full structure and the publishing rules. The terminal report stays too — the user reading right now should not have to open a link to learn the verdict.
 
 ## Honesty clauses
 
@@ -137,6 +164,7 @@ If the user wants something shareable, publish the report as an Artifact (load `
 | `references/checklists.md` | Per-surface sweep: forms, auth, lists, modals, checkout, dashboards, mobile, keyboard |
 | `references/personas.md` | Choosing whose eyes to use, and the device/network matrix |
 | `references/heuristics.md` | Naming *why* something is bad: heuristics, severity calls, what counts as evidence |
-| `references/report.md` | The report skeleton, with a worked example |
+| `references/report.md` | The report skeleton, the journey section, and how to publish the Artifact |
 | `references/troubleshooting.md` | Browser will not start, refs go stale, SPA never settles, auth walls, iframes |
+| `runtime/bundle.mjs` | Standalone. Run it after `stop` to turn the run dir into `bundle.json`: the journey, plus screenshots as `data:` URIs an Artifact can actually show |
 | `runtime/selftest/README.md` | A page with defects planted on purpose — run it when a review comes back suspiciously clean, or after changing the driver |

@@ -265,30 +265,37 @@ export async function startDaemon({ runDir, opts, stateFile }) {
     S.stepN++;
     lines.push(`step ${S.stepN}: ${label}${error ? '  -> ACTION FAILED' : ''}`);
     if (error) lines.push(`  error: ${error}`);
+    // Verdicts are the *computed* observations about this step — a dead control,
+    // a navigation, a stolen tab. They are journaled alongside the raw console
+    // and network signals, because a report written after the session (and any
+    // Artifact built from it) only ever sees the journal, never this terminal.
+    const verdicts = [];
     if (before && after) {
-      if (before.url !== after.url) lines.push(`  navigated: ${before.url}  ->  ${after.url}`);
+      if (before.url !== after.url) verdicts.push(`  navigated: ${before.url}  ->  ${after.url}`);
       else if (before.hash === after.hash && after.dialogs === before.dialogs) {
         // Only an interaction is *expected* to change something; a resize or a
         // scroll changing nothing is not a finding.
-        if (flags(o).expectChange !== false) lines.push('  NO VISIBLE CHANGE: same URL, identical body text, no dialog opened (possible dead control or silent failure)');
-        else lines.push('  page text unchanged (expected for this command)');
+        if (flags(o).expectChange !== false) verdicts.push('  NO VISIBLE CHANGE: same URL, identical body text, no dialog opened (possible dead control or silent failure)');
+        else verdicts.push('  page text unchanged (expected for this command)');
       }
-      else lines.push(`  page changed in place (text ${before.len} -> ${after.len} chars${after.dialogs > before.dialogs ? ', dialog/modal opened' : ''})`);
+      else verdicts.push(`  page changed in place (text ${before.len} -> ${after.len} chars${after.dialogs > before.dialogs ? ', dialog/modal opened' : ''})`);
     }
-    if (S.pages.length > beforeTabs) lines.push(`  a new tab/window opened (${S.pages.length} total) — use \`tabs\` / \`tab <n>\``);
+    if (S.pages.length > beforeTabs) verdicts.push(`  a new tab/window opened (${S.pages.length} total) — use \`tabs\` / \`tab <n>\``);
     if (S.lastSnapshot) {
       // If the refs were wiped out by a re-render, say so once instead of
       // letting the next command fail on a stale locator.
       let refsAlive = true;
       try { refsAlive = await page().evaluate(() => !!document.querySelector('[data-eyes-ref]')); } catch { refsAlive = false; }
-      if (!refsAlive) { S.lastSnapshot = null; lines.push('  refs invalidated (page re-rendered/navigated) — run `snap` before targeting anything'); }
+      if (!refsAlive) { S.lastSnapshot = null; verdicts.push('  refs invalidated (page re-rendered/navigated) — run `snap` before targeting anything'); }
     }
+    lines.push(...verdicts);
     const fresh = drainNew();
     if (fresh.length) lines.push(...fresh);
     else if (!error) lines.push('  no console error, no failed request');
     if (file) lines.push(`  shot: ${file}`);
-    journal({ step: S.stepN, label, error, url: after ? after.url : null, shot: file, signals: fresh });
-    return { text: lines.join('\n'), data: { step: S.stepN, error, url: after ? after.url : null, shot: file, signals: fresh } };
+    const signals = [...verdicts, ...fresh];
+    journal({ step: S.stepN, label, error, url: after ? after.url : null, shot: file, signals });
+    return { text: lines.join('\n'), data: { step: S.stepN, error, url: after ? after.url : null, shot: file, signals } };
   }
 
   /* -------------------------------------------------------------- commands */

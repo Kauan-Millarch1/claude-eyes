@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Loja Teste</title>
+<style>
+  body{font-family:system-ui;margin:0;padding:24px;background:#fff;color:#222}
+  .low{color:#b9b9b9;background:#fff}
+  .tiny{font-size:10px}
+  .wide{width:2200px;height:20px;background:#eee}
+  button{padding:10px 16px;font-size:16px}
+  .mini{padding:2px 4px;font-size:11px;width:24px;height:20px}
+  input{padding:8px;font-size:15px}
+  #painel{display:none;border:1px solid #ccc;padding:12px;margin-top:12px}
+  a.noring:focus{outline:none}
+</style>
+</head>
+<body>
+  <h2>Loja Teste</h2>
+  <nav>
+    <a href="/">Início</a>
+    <a href="#">Ofertas</a>
+    <a href="https://exemplo.com" target="_blank">Parceiro</a>
+    <a href="/carrinho" class="noring">Carrinho (0)</a>
+  </nav>
+
+  <p class="low">Frete grátis acima de R$ 199</p>
+  <p class="tiny">Consulte condições no regulamento completo da promoção vigente.</p>
+
+  <img src="/nao-existe.png">
+
+  <form id="f">
+    <input type="email" placeholder="seu@email.com" required>
+    <input type="text" id="cep" name="cep">
+    <label for="qtd">Quantidade</label>
+    <input type="number" id="qtd" value="1">
+    <button type="button" id="add">Adicionar ao carrinho</button>
+    <button class="mini" type="button">x</button>
+  </form>
+
+  <button id="morto">Ver detalhes</button>
+  <button id="abre">Abrir painel</button>
+  <div id="painel" role="dialog">Painel aberto. <button id="fecha">Fechar</button></div>
+
+  <div class="wide"></div>
+
+  <script>
+    document.getElementById('add').addEventListener('click', function () {
+      console.error('checkout: cart service returned 500');
+      fetch('/api/carrinho', { method: 'POST' });
+    });
+    document.getElementById('abre').addEventListener('click', function () {
+      document.getElementById('painel').style.display = 'block';
+    });
+    document.getElementById('fecha').addEventListener('click', function () {
+      document.getElementById('painel').style.display = 'none';
+    });
+    // "Ver detalhes" faz nada de propósito: botão morto
+    setTimeout(function () { undefined_function_qualquer(); }, 300);
+  </script>
+</body>
+</html>

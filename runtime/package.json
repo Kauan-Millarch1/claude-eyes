@@ -1,0 +1,11 @@
+{
+  "name": "claude-eyes-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Real-browser driver for the /eyes skill. Uses playwright-core against the system browser, so no bundled browser download is needed.",
+  "dependencies": {
+    "axe-core": "^4.10.2",
+    "playwright-core": "^1.62.1"
+  }
+}

@@ -1,0 +1,16 @@
+# Runtime dependencies — installed by the user via `npm install` in runtime/
+node_modules/
+
+# Evidence from browser sessions.
+# By default these land in os.tmpdir()/claude-eyes, but `start --rundir=...`
+# can point them anywhere, including here.
+runs/
+run-*/
+*.log
+shots/
+video/
+downloads/
+
+# OS noise
+.DS_Store
+Thumbs.db
